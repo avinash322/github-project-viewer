@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [username, setUsername] = useState("");
+  const [repos, setRepos] = useState([]);
+  const [readme, setReadme] = useState("");
+  const [selectedRepo, setSelectedRepo] = useState(null);
+
+  const fetchRepos = async () => {
+    const res = await fetch(`https://api.github.com/users/${username}/repos`);
+    const data = await res.json();
+    setRepos(data);
+    setReadme("");
+    setSelectedRepo(null);
+  };
+
+  const fetchReadme = async (repoName: any) => {
+    const res = await fetch(
+      `https://api.github.com/repos/${username}/${repoName}/readme`
+    );
+    const data = await res.json();
+    const content = atob(data.content);
+    setReadme(content);
+    setSelectedRepo(repoName);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div style={{ padding: 20, maxWidth: 800, margin: "auto" }}>
+      <h1>GitHub Project Viewer</h1>
+      <input
+        type="text"
+        placeholder="Enter GitHub username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        style={{ padding: 8, width: "100%", marginBottom: 10 }}
+      />
+      <button onClick={fetchRepos} style={{ padding: 10, width: "100%" }}>
+        Search
+      </button>
 
-export default App
+      <div style={{ marginTop: 20 }}>
+        <h2>Repositories:</h2>
+        <ul>
+          {repos.map((repo) => (
+            <li key={repo.id} style={{ marginBottom: 5 }}>
+              <button onClick={() => fetchReadme(repo.name)}>
+                {repo.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {readme && (
+        <div style={{ marginTop: 20 }}>
+          <h2>README: {selectedRepo}</h2>
+          <pre
+            style={{
+              whiteSpace: "pre-wrap",
+              background: "#f0f0f0",
+              padding: 10,
+            }}
+          >
+            {readme}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
