@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ManualMarkdownRenderer from "./ManualMarkdownRenderer";
 
 export default function App() {
   const [username, setUsername] = useState("");
@@ -41,7 +42,7 @@ export default function App() {
       <div style={{ marginTop: 20 }}>
         <h2>Repositories:</h2>
         <ul>
-          {repos.map((repo) => (
+          {repos.map((repo: any) => (
             <li key={repo.id} style={{ marginBottom: 5 }}>
               <button onClick={() => fetchReadme(repo.name)}>
                 {repo.name}
@@ -54,15 +55,7 @@ export default function App() {
       {readme && (
         <div style={{ marginTop: 20 }}>
           <h2>README: {selectedRepo}</h2>
-          <pre
-            style={{
-              whiteSpace: "pre-wrap",
-              background: "#f0f0f0",
-              padding: 10,
-            }}
-          >
-            {readme}
-          </pre>
+          <ManualMarkdownRenderer markdown={readme} />
         </div>
       )}
     </div>
