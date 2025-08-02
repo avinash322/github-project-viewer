@@ -2,7 +2,7 @@
 
 A simple React + TypeScript application that allows you to search for a GitHub username, display their public repositories, and view the content of each repository’s README file in a clean Markdown preview.
 
-🚀 **Live Demo:** [funny-halva-89f9d2.netlify.app](https://funny-halva-89f9d2.netlify.app)
+🚀 **Live Demo:** [github-project-viewer.netlify.app](https://github-project-viewer.netlify.app)
 
 ---
 
