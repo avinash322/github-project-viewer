@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
-import { Buffer } from "buffer";
 import { ScrambleText } from "./utils/ScrambleText";
 import {
   Button,
@@ -56,7 +55,7 @@ export default function App() {
 
   // FUNCTIONS
   const handleClose = (
-    event?: React.SyntheticEvent | Event,
+    _event?: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason
   ) => {
     if (reason === "clickaway") {
