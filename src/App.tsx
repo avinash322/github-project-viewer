@@ -20,20 +20,23 @@ import DrawerCardList from "./components/CardList";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "./redux/store";
 import { addHistory } from "./redux/historySlice";
+import { fetchReposFromGithub, fetchReadmeFromGithub } from "./utils/services";
 
 export default function App() {
-  // STATES
+  // REPO GITHUB
   const [username, setUsername] = useState("");
-  const [repos, setRepos] = useState([]);
+  const [repos, setRepos] = useState<any[]>([]);
   const [readme, setReadme] = useState("");
-  const [selectedRepo, setSelectedRepo] = useState(null);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  // MODAL
   const [openModal, setOpenModal] = useState(false);
+  // LOADING
   const [isLoading, setisLoading] = useState(false);
-
+  // SNACKBAR
   const [openSnackbar, setOpenSnackbar] = useState(false);
-
+  const [messageSnackbar, setMessageSnackbar] = useState("");
+  // DRAWER
   const [openDrawer, setOpenDrawer] = useState(false);
-
   // REDUX
   const dispatch = useDispatch();
   const historyList = useSelector(
@@ -52,7 +55,6 @@ export default function App() {
   };
 
   // FUNCTIONS
-
   const handleClose = (
     event?: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason
@@ -60,46 +62,42 @@ export default function App() {
     if (reason === "clickaway") {
       return;
     }
-
     setOpenSnackbar(false);
   };
 
   const fetchRepos = async () => {
-    if (username == "") {
-      return;
-    }
-
+    if (!username) return;
     setisLoading(true);
-    const res = await fetch(`https://api.github.com/users/${username}/repos`);
-    const data = await res.json();
-    setRepos(data);
-    setReadme("");
-    setSelectedRepo(null);
+    const result = await fetchReposFromGithub(username);
+    if ("error" in result) {
+      setMessageSnackbar(result.error);
+      setOpenSnackbar(true);
+    } else {
+      setRepos(result);
+      setReadme("");
+      setSelectedRepo(null);
+    }
     setTimeout(() => {
       setisLoading(false);
     }, 300);
   };
 
-  const fetchReadme = async (repoName: any) => {
-    const res = await fetch(
-      `https://api.github.com/repos/${username}/${repoName}/readme`
-    );
-    const data = await res.json();
-    if (!data.content) {
-      setOpenSnackbar(true);
-    } else {
-      const content = Buffer.from(data.content, "base64").toString("utf-8");
-      setReadme(content);
+  const fetchReadme = async (repoName: string) => {
+    const result = await fetchReadmeFromGithub(username, repoName);
+    if (typeof result === "string") {
+      setReadme(result);
       setSelectedRepo(repoName);
       setOpenModal(true);
-
-      dispatch(
-        addHistory({
-          account: username,
-          repo: repoName,
-        })
-      );
+    } else {
+      setMessageSnackbar(result.error);
+      setOpenSnackbar(true);
     }
+    dispatch(
+      addHistory({
+        account: username,
+        repo: repoName,
+      })
+    );
   };
 
   const toggleDrawer = (isOpen: boolean) => () => {
@@ -197,7 +195,7 @@ export default function App() {
       <CustomSnackbar
         open={openSnackbar}
         onClose={handleClose}
-        message="File README tidak ada"
+        message={messageSnackbar}
         severity="error"
       />
 
@@ -208,6 +206,12 @@ export default function App() {
         onClose={() => setOpenModal(false)}
         repoName={selectedRepo}
         content={readme}
+      />
+      {/* IMAGE BACKGROUND */}
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/1200px-GitHub_Invertocat_Logo.svg.png"
+        className="img-background"
+        alt="Background"
       />
     </Box>
   );

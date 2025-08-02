@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, Card, CardContent } from "@mui/material";
+import { Box, Typography, Card, CardContent, Divider } from "@mui/material";
 
 interface DrawerCardListProps {
   title?: string;
@@ -8,6 +8,13 @@ interface DrawerCardListProps {
     repo: string;
   }[];
 }
+
+const textStyle = {
+  fontFamily: '"Inter", sans-serif',
+  wordWrap: "break-word",
+  overflowWrap: "break-word",
+  whiteSpace: "normal",
+};
 
 const DrawerCardList: React.FC<DrawerCardListProps> = ({
   title = "History",
@@ -33,17 +40,16 @@ const DrawerCardList: React.FC<DrawerCardListProps> = ({
           }}
         >
           <CardContent>
-            <Typography
-              variant="body1"
-              sx={{ fontFamily: '"Inter", sans-serif' }}
-            >
+            <Typography variant="body1" sx={textStyle}>
               {item.account}
             </Typography>
-            <Typography
-              variant="body2"
-              color="grey.500"
-              sx={{ fontFamily: '"Inter", sans-serif' }}
-            >
+            <Divider
+              sx={{
+                borderColor: "#FA8072",
+                borderBottomWidth: 1,
+              }}
+            />
+            <Typography variant="body2" color="grey.500" sx={textStyle}>
               {item.repo}
             </Typography>
           </CardContent>
