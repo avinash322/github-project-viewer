@@ -1,24 +1,28 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import remarkGfm from "remark-gfm";
 import { Buffer } from "buffer";
 import { ScrambleText } from "./utils/ScrambleText";
 import {
   Button,
   Divider,
+  Drawer,
+  Fab,
   Skeleton,
-  Snackbar,
+  Typography,
   type SnackbarCloseReason,
 } from "@mui/material";
-import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import Alert from "@mui/material/Alert";
 import UsernameTextField from "./components/Textfield";
 import RepoChip from "./components/RepoChip";
+import ReadmeDialog from "./components/ReadmeDialog";
+import CustomSnackbar from "./components/CustomSnackbar";
+import HistoryIcon from "@mui/icons-material/History";
+import DrawerCardList from "./components/CardList";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "./redux/store";
+import { addHistory } from "./redux/historySlice";
 
 export default function App() {
+  // STATES
   const [username, setUsername] = useState("");
   const [repos, setRepos] = useState([]);
   const [readme, setReadme] = useState("");
@@ -26,17 +30,38 @@ export default function App() {
   const [openModal, setOpenModal] = useState(false);
   const [isLoading, setisLoading] = useState(false);
 
-  const [open, setOpen] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  // REDUX
+  const dispatch = useDispatch();
+  const historyList = useSelector(
+    (state: RootState) => state.history.historyList
+  );
+
+  // STYLING
+  const buttonSubmitStyle = {
+    backgroundColor: "#00ffcc",
+    color: "#2C3E50",
+    fontWeight: "bold",
+    fontFamily: "'Inter', sans-serif",
+    position: "absolute",
+    left: "50%",
+    transform: "translateX(-50%)",
+  };
+
+  // FUNCTIONS
 
   const handleClose = (
-    event: React.SyntheticEvent | Event,
+    event?: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason
   ) => {
     if (reason === "clickaway") {
       return;
     }
 
-    setOpen(false);
+    setOpenSnackbar(false);
   };
 
   const fetchRepos = async () => {
@@ -61,154 +86,129 @@ export default function App() {
     );
     const data = await res.json();
     if (!data.content) {
-      setOpen(true);
+      setOpenSnackbar(true);
     } else {
       const content = Buffer.from(data.content, "base64").toString("utf-8");
       setReadme(content);
       setSelectedRepo(repoName);
       setOpenModal(true);
+
+      dispatch(
+        addHistory({
+          account: username,
+          repo: repoName,
+        })
+      );
     }
   };
 
+  const toggleDrawer = (isOpen: boolean) => () => {
+    setOpenDrawer(isOpen);
+  };
+
   return (
-    <Box
-      sx={{
-        alignItems: "flex-start",
-        justifyContent: "flex-start",
-      }}
-    >
-      <div style={{ padding: 20, maxWidth: 800, margin: "auto" }}>
-        <ScrambleText text="Github Project Viewer" duration={1000} />
+    <Box className="container-start">
+      <ScrambleText text="Github Project Viewer" duration={1000} />
+      <Divider
+        sx={{
+          borderColor: "#FA8072",
+          borderBottomWidth: 5,
+        }}
+      />
 
-        <Divider
-          sx={{
-            borderColor: "#FA8072",
-            borderBottomWidth: 5,
-          }}
-        />
+      <Box className="margin-divider-small" />
+      <UsernameTextField
+        value={username}
+        onChange={(e: any) => setUsername(e.target.value)}
+      />
 
-        <Box sx={{ marginTop: 10 }}></Box>
-        <UsernameTextField
-          value={username}
-          onChange={(e: any) => setUsername(e.target.value)}
-        />
+      <Box className="margin-divider-small" />
 
-        <Box sx={{ marginTop: 10 }}></Box>
-
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#00ffcc",
-              color: "#2C3E50",
-              fontWeight: 500,
-              fontFamily: "'Inter', sans-serif",
-            }}
-            onClick={() => fetchRepos()}
-          >
-            Search Repo
-          </Button>
-        </Box>
-
-        <Box sx={{ marginTop: 10 }}>
-          <div style={{ marginTop: 20 }}>
-            {repos.length > 0 && <h2>Repositories:</h2>}
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 1,
-                mt: 2,
-              }}
-            >
-              {isLoading ? (
-                <Box sx={{ maxWidth: 900, width: "100%", mx: "auto" }}>
-                  <Skeleton variant="rounded" height={50} width="40%" />
-                  <Box sx={{ mt: 1 }} />
-                  <Skeleton variant="rounded" height={50} width="70%" />
-                  <Box sx={{ mt: 1 }} />
-                  <Skeleton variant="rounded" height={50} width="100%" />
-                </Box>
-              ) : (
-                repos.map((repo: any) => (
-                  <RepoChip
-                    key={repo.id}
-                    repoId={repo.id}
-                    repoName={repo.name}
-                    onClick={fetchReadme}
-                  />
-                ))
-              )}
-            </Box>
-          </div>
-        </Box>
-      </div>
-
-      <Snackbar
-        open={open}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleClose}
-          severity="error"
-          sx={{
-            backgroundColor: "#FA8072",
-            color: "white",
-            "& .MuiAlert-icon": {
-              color: "white",
-            },
-          }}
+      <Box className="container-center">
+        <Button
+          variant="contained"
+          sx={buttonSubmitStyle}
+          onClick={() => fetchRepos()}
         >
-          File README tidak ada
-        </Alert>
-      </Snackbar>
-      <Dialog
+          Search Repo
+        </Button>
+
+        <div className="container-fab">
+          <Fab
+            aria-label="add"
+            onClick={toggleDrawer(true)}
+            sx={{
+              backgroundColor: "#2C3E50",
+              color: "#00ffcc",
+              "&:hover": {
+                backgroundColor: "#1a252f",
+              },
+            }}
+          >
+            <HistoryIcon />
+          </Fab>
+        </div>
+      </Box>
+
+      <Box className="margin-divider-small">
+        {repos.length > 0 && (
+          <Typography variant="h4">Repositories:</Typography>
+        )}
+        <Box className="base-container-chip">
+          {isLoading ? (
+            <Box className="container-skeleton">
+              <Skeleton variant="rounded" height={50} width="40%" />
+              <Box sx={{ mt: 1 }} />
+              <Skeleton variant="rounded" height={50} width="70%" />
+              <Box sx={{ mt: 1 }} />
+              <Skeleton variant="rounded" height={50} width="100%" />
+            </Box>
+          ) : (
+            repos.map((repo: any) => (
+              <RepoChip
+                key={repo.id}
+                repoId={repo.id}
+                repoName={repo.name}
+                onClick={fetchReadme}
+              />
+            ))
+          )}
+        </Box>
+      </Box>
+
+      {/*  DRAWER*/}
+      <Drawer
+        anchor="right"
+        open={openDrawer}
+        onClose={toggleDrawer(false)}
+        PaperProps={{
+          sx: {
+            width: 250,
+            background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+            color: "#fff",
+          },
+        }}
+      >
+        <DrawerCardList title="History" dataList={historyList} />
+      </Drawer>
+
+      {/*  SNACKBAR*/}
+
+      <CustomSnackbar
+        open={openSnackbar}
+        onClose={handleClose}
+        message="File README tidak ada"
+        severity="error"
+      />
+
+      {/*  MODAL README*/}
+
+      <ReadmeDialog
         open={openModal}
         onClose={() => setOpenModal(false)}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle
-          sx={{
-            backgroundColor: "#B0E0E6",
-            color: "#2C3E50",
-            fontWeight: "bold",
-            position: "relative",
-          }}
-        >
-          README: {selectedRepo}
-          <IconButton
-            onClick={() => setOpenModal(false)}
-            sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              color: "#2C3E50",
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <ReactMarkdown
-            children={readme}
-            rehypePlugins={[rehypeRaw]}
-            remarkPlugins={[remarkGfm]}
-            components={{
-              a: ({ node, ...props }) => (
-                <a
-                  {...props}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#0000CD", textDecoration: "underline" }}
-                />
-              ),
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+        repoName={selectedRepo}
+        content={readme}
+      />
     </Box>
   );
 }

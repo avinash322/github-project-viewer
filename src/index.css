@@ -43,21 +43,53 @@ h1 {
   line-height: 1.1;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+.container-start {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.container-center {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  position: relative;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.margin-divider-small {
+  margin-top: 50px;
+}
+
+.margin-divider-medium {
+  margin-top: 80px;
+}
+
+.button-submit {
+  background-color: #00ffcc;
+  color: #2c3e50;
   font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+  font-family: "Inter", sans-serif;
 }
-button:hover {
-  border-color: #646cff;
+
+.base-container-chip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+
+.container-skeleton {
+  max-width: 900px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-fab {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
