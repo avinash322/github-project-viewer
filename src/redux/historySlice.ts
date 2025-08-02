@@ -21,11 +21,8 @@ const historySlice = createSlice({
     addHistory: (state, action: PayloadAction<HistoryItem>) => {
       state.historyList.unshift(action.payload);
     },
-    clearHistory: (state) => {
-      state.historyList = [];
-    },
   },
 });
 
-export const { addHistory, clearHistory } = historySlice.actions;
+export const { addHistory } = historySlice.actions;
 export default historySlice.reducer;
